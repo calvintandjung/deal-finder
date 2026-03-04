@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import type { Property } from '@/lib/types/database'
+import { SkipTraceButton } from '@/lib/skipTrace/SkipTraceButton'
 
 export default function PropertyDetailPage() {
   const params = useParams()
@@ -244,11 +245,17 @@ export default function PropertyDetailPage() {
                   <p className="font-medium">{property.owner_email || 'Needs Skip Trace'}</p>
                 </div>
               </div>
-              {!property.owner_phone && (
-                <button className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-medium transition-colors">
-                  🔍 Run Skip Trace
-                </button>
-              )}
+              <div className="mt-4">
+                <SkipTraceButton
+                  propertyId={property.id}
+                  ownerName={property.owner_name || 'Unknown'}
+                  hasContact={!!(property.owner_phone || property.owner_email)}
+                  onSuccess={() => {
+                    // Refresh property data to show new contact info
+                    window.location.reload()
+                  }}
+                />
+              </div>
             </div>
 
             {/* Notes */}
