@@ -14,25 +14,25 @@ export default function PropertyDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    async function fetchProperty() {
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from('properties')
-        .select('*')
-        .eq('id', params.id)
-        .single()
+  const fetchProperty = async () => {
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('properties')
+      .select('*')
+      .eq('id', params.id)
+      .single()
 
-      if (error) {
-        setError('Property not found')
-        setLoading(false)
-        return
-      }
-
-      setProperty(data)
+    if (error) {
+      setError('Property not found')
       setLoading(false)
+      return
     }
 
+    setProperty(data)
+    setLoading(false)
+  }
+
+  useEffect(() => {
     if (params.id) {
       fetchProperty()
     }
@@ -250,9 +250,9 @@ export default function PropertyDetailPage() {
                   propertyId={property.id}
                   ownerName={property.owner_name || 'Unknown'}
                   hasContact={!!(property.owner_phone || property.owner_email)}
-                  onSuccess={() => {
-                    // Refresh property data to show new contact info
-                    window.location.reload()
+                  onSuccess={async () => {
+                    // Refresh property data to show new contact info (without page reload)
+                    await fetchProperty()
                   }}
                 />
               </div>

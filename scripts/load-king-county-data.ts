@@ -258,14 +258,14 @@ async function loadData() {
         property_type: parcel.PropType?.trim(),
         zoning: parcel.CurrentZoning?.trim(),
         present_use: parcel.PresentUse?.trim(),
-        lot_size_sqft: parseInt(parcel.SqFtLot) || null,
-        bedrooms: parseInt(building?.Bedrooms) || null,
-        bathrooms: parseFloat(building?.BathFullCount) || null,
-        building_sqft: parseInt(building?.SqFtTotLiving) || null,
-        year_built: parseInt(building?.YrBuilt) || null,
-        assessed_land_value: parseInt(account?.ApprLandVal) || null,
-        assessed_improvement_value: parseInt(account?.ApprImpsVal) || null,
-        total_assessed_value: (parseInt(account?.ApprLandVal) || 0) + (parseInt(account?.ApprImpsVal) || 0),
+        lot_size_sqft: parcel.SqFtLot ? parseInt(parcel.SqFtLot) : null,
+        bedrooms: building?.Bedrooms ? parseInt(building.Bedrooms) : null,
+        bathrooms: building?.BathFullCount ? parseFloat(building.BathFullCount) : null,
+        building_sqft: building?.SqFtTotLiving ? parseInt(building.SqFtTotLiving) : null,
+        year_built: building?.YrBuilt ? parseInt(building.YrBuilt) : null,
+        assessed_land_value: account?.ApprLandVal ? parseInt(account.ApprLandVal) : null,
+        assessed_improvement_value: account?.ApprImpsVal ? parseInt(account.ApprImpsVal) : null,
+        total_assessed_value: (account?.ApprLandVal ? parseInt(account.ApprLandVal) : 0) + (account?.ApprImpsVal ? parseInt(account.ApprImpsVal) : 0),
         normalized_address: normalizeAddress(propertyAddress)
       }
     })
