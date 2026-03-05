@@ -1,4 +1,6 @@
 data/
+scripts/
+scraper/
 *.csv
 *.xlsx
 *.json
