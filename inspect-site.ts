@@ -59,13 +59,13 @@ async function inspect() {
   
   console.log('\n=== Found Elements ===')
   console.log('\nLinks with phone/email:')
-  elements.links.slice(0, 10).forEach(l => console.log('  ' + l))
+  elements.links.slice(0, 10).forEach((l: string) => console.log('  ' + l))
   
   console.log('\nPhone/Email/Contact classes:')
-  elements.classes.slice(0, 10).forEach(c => console.log('  ' + c))
+  elements.classes.slice(0, 10).forEach((c: string) => console.log('  ' + c))
   
   console.log('\nResult card classes:')
-  elements.sample.forEach(s => console.log('  ' + s))
+  elements.sample.forEach((s: string) => console.log('  ' + s))
   
   console.log('\n\nPress Ctrl+C when done inspecting...')
   await new Promise(() => {}) // Keep browser open

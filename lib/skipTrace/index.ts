@@ -2,19 +2,21 @@
  * Skip Trace Module - YOLO Edition
  * 
  * Automated contact finding for property owners
- * Strategy: FREE scrapers first, paid fallback only if needed
+ * Strategy: King County data first (FREE!), then scrapers, paid fallback only if needed
  * 
  * Data flow:
- * 1. Free people search scrapers (TruePeopleSearch, FastPeopleSearch, ThatsThem)
- * 2. Business Entity Search (if LLC/Trust)
- * 3. Voter Registration (if available)
- * 4. Whitepages API (paid fallback - $0.08/lookup)
+ * 1. King County Assessor Data (for Seattle properties - FREE, 100% accurate)
+ * 2. Free people search scrapers (TruePeopleSearch, FastPeopleSearch, ThatsThem)
+ * 3. Business Entity Search (if LLC/Trust)
+ * 4. Voter Registration (if available)
+ * 5. Whitepages API (paid fallback - $0.08/lookup)
  * 
  * TOS WARNING: This violates TOS of various sites. Personal use only.
  */
 
 import { createClient } from '@/lib/supabase/client'
 import { aggregateFreeSources } from './freeScraper'
+import { lookupKingCounty } from './kingCounty'
 
 export interface SkipTraceResult {
   success: boolean
@@ -55,6 +57,38 @@ export async function runSkipTrace(request: SkipTraceRequest): Promise<SkipTrace
   }
 
   try {
+    // Phase 0: KING COUNTY DATA (FREE, LOCAL, FAST!)
+    if (request.city.toLowerCase() === 'seattle' || request.state === 'WA') {
+      result.notes += 'Checking King County Assessor data...\n'
+      
+      const kcMatch = await lookupKingCounty(request.property_address, request.parcel_number)
+      
+      if (kcMatch) {
+        result.notes += `✅ KING COUNTY MATCH! (${kcMatch.match_method}, ${kcMatch.match_score}% confidence)\n`
+        result.notes += `Parcel: ${kcMatch.parcel_number}\n`
+        
+        if (kcMatch.mailing_address) {
+          const mailingFull = `${kcMatch.mailing_address}, ${kcMatch.mailing_city_state} ${kcMatch.mailing_zip || ''}`
+          result.additional_addresses.push(mailingFull.trim())
+          result.notes += `Owner mailing address: ${mailingFull}\n`
+        }
+        
+        if (kcMatch.assessed_land_value && kcMatch.assessed_improvement_value) {
+          result.notes += `Assessed value: $${(kcMatch.total_assessed_value || 0).toLocaleString()}\n`
+        }
+        
+        result.sources_used.push('king-county')
+        result.success = true
+        result.confidence = kcMatch.match_score >= 95 ? 'high' : 'medium'
+        result.cost = 0 // FREE!
+        
+        // Even with KC data, still try to find phone/email from other sources
+        result.notes += '\nSearching for contact info from other sources...\n'
+      } else {
+        result.notes += '❌ No King County match found\n'
+      }
+    }
+    
     // Phase 1: FREE SCRAPERS (YOLO!)
     result.notes += 'Starting FREE scraper aggregation...\n'
     
